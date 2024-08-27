@@ -174,7 +174,18 @@ main (int argc, char **argv)
     printf ("Please give the number of runs through the benchmark: ");
     {
       int n;
+#ifdef MURMULATOR
+      char c;
+      char buf[16] = { 0 };
+      int i = 0;
+      while((c = getch()) && !marked_to_exit && i < 16 && c != '\n') {
+        buf[i++] = c;
+        buf[i] = 0;
+      }
+      n = atoi(buf);
+#else
       scanf ("%d", &n);
+#endif
       Number_Of_Runs = n;
     }
   }
@@ -209,7 +220,7 @@ main (int argc, char **argv)
 #ifdef MURMULATOR
   Begin_Time = time_us_32();
 #endif 
-  for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
+  for (Run_Index = 1; Run_Index <= Number_Of_Runs && !marked_to_exit; ++Run_Index)
   {
 
     Proc_5();
@@ -357,13 +368,12 @@ main (int argc, char **argv)
       printf ("Dhrystone DMIPS/MHz = %6.1f\n", (float)Dhrystones_Per_Second / (float)1757 / (float) CpuFreq);
     }
   }
-  
+  return 0;
 }
 
 
-Proc_1 (Ptr_Val_Par)
+static void Proc_1 (Ptr_Val_Par)
 /******************/
-
 REG Rec_Pointer Ptr_Val_Par;
     /* executed once */
 {
@@ -395,7 +405,7 @@ REG Rec_Pointer Ptr_Val_Par;
 } /* Proc_1 */
 
 
-Proc_2 (Int_Par_Ref)
+static void Proc_2 (Int_Par_Ref)
 /******************/
     /* executed once */
     /* *Int_Par_Ref == 1, becomes 4 */
@@ -418,7 +428,7 @@ One_Fifty   *Int_Par_Ref;
 } /* Proc_2 */
 
 
-Proc_3 (Ptr_Ref_Par)
+static void Proc_3 (Ptr_Ref_Par)
 /******************/
     /* executed once */
     /* Ptr_Ref_Par becomes Ptr_Glob */
@@ -433,7 +443,7 @@ Rec_Pointer *Ptr_Ref_Par;
 } /* Proc_3 */
 
 
-Proc_4 () /* without parameters */
+static void Proc_4 () /* without parameters */
 /*******/
     /* executed once */
 {
@@ -445,7 +455,7 @@ Proc_4 () /* without parameters */
 } /* Proc_4 */
 
 
-Proc_5 () /* without parameters */
+static void Proc_5 () /* without parameters */
 /*******/
     /* executed once */
 {

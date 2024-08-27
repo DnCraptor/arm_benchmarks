@@ -1,0 +1,5 @@
+dhrystone/build/
+dhrystone/bin/
+build/
+**/cmake-*/
+bin/
