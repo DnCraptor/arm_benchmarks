@@ -381,12 +381,24 @@
  *
  ***************************************************************************
  */
-
+#ifndef MURMULATOR
 /* Compiler and system dependent definitions: */
 
 #ifndef TIME
 #undef TIMES
-#define TIMES
+
+//#define TIMES
+#define MURMULATOR
+#include <hardware/timer.h>
+#include "m-os-api.h"
+#include "m-os-api-sdtfn.h"
+#include "m-os-api-math.h"
+// TODO:
+#undef switch
+#define NOSTRUCTASSIGN
+#define Too_Small_Time 1 // us (microseconds)
+#define HZ     1000000.0
+
 #endif
                 /* Use times(2) time function unless    */
                 /* explicitly defined otherwise         */
@@ -428,8 +440,9 @@
         /* for boolean and enumeration types in Ada, Pascal */
 
 /* General definitions: */
-
+#ifndef MURMULATOR
 #include <stdio.h>
+#endif
                 /* for strcpy, strcmp */
 
 #define Null 0 
@@ -467,3 +480,4 @@ typedef struct record
       } Rec_Type, *Rec_Pointer;
 
 
+#endif

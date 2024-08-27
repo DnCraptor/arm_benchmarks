@@ -52,7 +52,6 @@
  *
  ****************************************************************************
  */
-
 #include "dhry.h"
 
 /* Global Variables: */
@@ -66,8 +65,10 @@ char            Ch_1_Glob,
 int             Arr_1_Glob [50];
 int             Arr_2_Glob [50] [50];
 
+#ifndef MURMULATOR
 extern char     *malloc (size_t size);
 extern char     *strcpy (char *destination, const char *source);
+#endif
 
 Enumeration     Func_1 ();
   /* forward declaration necessary since Enumeration may not simply be int */
@@ -111,8 +112,11 @@ int             i;
 int             CpuFreq=0; // in KHz
 /* end of variables for time measurement */
 
-
+#ifdef MURMULATOR
+int main (void)
+#else
 main (int argc, char **argv)
+#endif
 /*****/
 
   /* main program, corresponds to procedures        */
@@ -130,6 +134,11 @@ main (int argc, char **argv)
 
   /* Initializations */
 
+#ifdef MURMULATOR
+  cmd_ctx_t* ctx = get_cmd_ctx();
+  int argc = ctx->argc;
+  char **argv = ctx->argv;
+#endif
   Next_Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
   Ptr_Glob = (Rec_Pointer) malloc (sizeof (Rec_Type));
 
@@ -197,6 +206,9 @@ main (int argc, char **argv)
 #ifdef MSC_CLOCK
   Begin_Time = clock();
 #endif 
+#ifdef MURMULATOR
+  Begin_Time = time_us_32();
+#endif 
   for (Run_Index = 1; Run_Index <= Number_Of_Runs; ++Run_Index)
   {
 
@@ -257,6 +269,9 @@ main (int argc, char **argv)
 #ifdef MSC_CLOCK
   End_Time = clock();
 #endif
+#ifdef MURMULATOR
+  End_Time = time_us_32();
+#endif 
 
   printf ("Execution ends\n");
   printf ("\n");
@@ -441,6 +456,7 @@ Proc_5 () /* without parameters */
 
         /* Procedure for the assignment of structures,          */
         /* if the C compiler doesn't support this feature       */
+#ifndef MURMULATOR
 #ifdef  NOSTRUCTASSIGN
 memcpy (d, s, l)
 register char   *d;
@@ -450,5 +466,6 @@ register int    l;
         while (l--) *d++ = *s++;
 }
 #endif
+#endif
 
-
+#include "dhry_2.c"
