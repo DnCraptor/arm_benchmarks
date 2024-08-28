@@ -351,6 +351,8 @@ main (int argc, char **argv)
     printf ("%6.1f \n", Microseconds);
     printf ("Dhrystones per Second:                      ");
     printf ("%6.1f \n", Dhrystones_Per_Second);
+    printf ("VAX DMIPS:                                  ");
+    printf ("%6.1f \n", (float)Dhrystones_Per_Second / (float)1757);
     printf ("\n");
     if(CpuFreq !=0)
     {
