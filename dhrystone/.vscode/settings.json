@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "stdio.h": "c",
-        "m-os-api-sdtfn.h": "c"
+        "m-os-api-sdtfn.h": "c",
+        "m-os-api.h": "c",
+        "m-os-api-math.h": "c"
     }
 }

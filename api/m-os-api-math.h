@@ -104,6 +104,14 @@ unsigned __aeabi_uidivmod(unsigned x, unsigned y) {
     typedef int (*fn)(unsigned, unsigned);
     return ((fn)_sys_table_ptrs[228])(x, y);
 }
+double __aeabi_dmul(double x, double y) {
+    typedef double (*fn)(double, double);
+    return ((fn)_sys_table_ptrs[245])(x, y);
+}
+double __aeabi_ddiv(double x, double y) {
+    typedef double (*fn)(double, double);
+    return ((fn)_sys_table_ptrs[246])(x, y);
+}
 
 #ifdef __cplusplus
 }

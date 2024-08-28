@@ -56,31 +56,13 @@
 
 /* Global Variables: */
 
-Rec_Pointer     Ptr_Glob,
-                Next_Ptr_Glob;
-int             Int_Glob;
-Boolean         Bool_Glob;
-char            Ch_1_Glob,
-                Ch_2_Glob;
-int             Arr_1_Glob [50];
-int             Arr_2_Glob [50] [50];
-
 #ifndef MURMULATOR
 extern char     *malloc (size_t size);
 extern char     *strcpy (char *destination, const char *source);
 #endif
 
-Enumeration     Func_1 ();
+static Enumeration     Func_1 ();
   /* forward declaration necessary since Enumeration may not simply be int */
-
-#ifndef REG
-        Boolean Reg = false;
-#define REG
-        /* REG becomes defined as empty */
-        /* i.e. no register variables   */
-#else
-        Boolean Reg = true;
-#endif
 
 /* variables for time measurement: */
 
@@ -102,15 +84,11 @@ extern clock_t clock();
 #define Too_Small_Time (2*HZ)
 #endif
 
-long            Begin_Time,
-                End_Time,
-                User_Time;
-float           Microseconds,
-                Dhrystones_Per_Second;
-
-int             i;
-int             CpuFreq=0; // in KHz
-/* end of variables for time measurement */
+Rec_Pointer     Ptr_Glob;
+Boolean         Bool_Glob;
+char            Ch_1_Glob;
+char            Ch_2_Glob;
+int             Int_Glob;
 
 #ifdef MURMULATOR
 int main (void)
@@ -131,6 +109,26 @@ main (int argc, char **argv)
         Str_30          Str_2_Loc;
   REG   int             Run_Index;
   REG   int             Number_Of_Runs;
+  
+  long            Begin_Time = 0;
+  long            End_Time = 0;
+  long            User_Time = 0;
+  float           Microseconds = 0.0f;
+  float           Dhrystones_Per_Second = 0.0f;
+
+  int             i = 0;
+  int             CpuFreq = 378000; // in KHz   TODO: detect
+  marked_to_exit = false;
+/* end of variables for time measurement */
+  Ptr_Glob = 0;
+  Rec_Pointer     Next_Ptr_Glob = 0;
+  Int_Glob = 0;
+  Bool_Glob = 0;
+  Ch_1_Glob = 0;
+  Ch_2_Glob = 0;
+  int             Arr_1_Glob [50] = { 0 };
+
+  int* _pt2_ = (int*)calloc(50 * 50, sizeof(int));
 
   /* Initializations */
 
@@ -150,7 +148,7 @@ main (int argc, char **argv)
           "DHRYSTONE PROGRAM, SOME STRING");
   strcpy (Str_1_Loc, "DHRYSTONE PROGRAM, 1'ST STRING");
 
-  Arr_2_Glob [8][7] = 10;
+  _pt2_ [8 * 50 + 7] = 10;
         /* Was missing in published program. Without this statement,    */
         /* Arr_2_Glob [8][7] would have an undefined value.             */
         /* Warning: With 16-Bit processors and Number_Of_Runs > 32000,  */
@@ -159,16 +157,8 @@ main (int argc, char **argv)
   printf ("\n");
   printf ("Dhrystone Benchmark, Version 2.1 (Language: C)\n");
   printf ("\n");
-  if (Reg)
-  {
-    printf ("Program compiled with 'register' attribute\n");
-    printf ("\n");
-  }
-  else
-  {
-    printf ("Program compiled without 'register' attribute\n");
-    printf ("\n");
-  }
+  printf ("Program compiled with 'register' attribute\n");
+  printf ("\n");
   if(argc == 1)
   {
     printf ("Please give the number of runs through the benchmark: ");
@@ -241,7 +231,7 @@ main (int argc, char **argv)
       Int_1_Loc += 1;
     } /* while */
       /* Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7 */
-    Proc_8 (Arr_1_Glob, Arr_2_Glob, Int_1_Loc, Int_3_Loc);
+    Proc_8 (Arr_1_Glob, _pt2_, Int_1_Loc, Int_3_Loc);
       /* Int_Glob == 5 */
     Proc_1 (Ptr_Glob);
     for (Ch_Index = 'A'; Ch_Index <= Ch_2_Glob; ++Ch_Index)
@@ -298,7 +288,7 @@ main (int argc, char **argv)
   printf ("        should be:   %c\n", 'B');
   printf ("Arr_1_Glob[8]:       %d\n", Arr_1_Glob[8]);
   printf ("        should be:   %d\n", 7);
-  printf ("Arr_2_Glob[8][7]:    %d\n", Arr_2_Glob[8][7]);
+  printf ("Arr_2_Glob[8][7]:    %d\n", _pt2_[8*50 + 7]);
   printf ("        should be:   Number_Of_Runs + 10\n");
   printf ("Ptr_Glob->\n");
   printf ("  Ptr_Comp:          %d\n", (int) Ptr_Glob->Ptr_Comp);
@@ -368,6 +358,9 @@ main (int argc, char **argv)
       printf ("Dhrystone DMIPS/MHz = %6.1f\n", (float)Dhrystones_Per_Second / (float)1757 / (float) CpuFreq);
     }
   }
+  free(_pt2_);
+  free(Next_Ptr_Glob);
+  free(Ptr_Glob);
   return 0;
 }
 
