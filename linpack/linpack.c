@@ -70,6 +70,10 @@ You must specify one of -DROLL or -DUNROLL to compile correctly.
 #define PREC "Single "
 #endif
 
+//
+#define DP
+#define ROLL
+
 #ifdef DP
 #define REAL double
 #define ZERO 0.0e0
@@ -86,8 +90,20 @@ You must specify one of -DROLL or -DUNROLL to compile correctly.
 #define ROLLING "Unrolled "
 #endif
 
+#ifndef MURMULATOR
+#define MURMULATOR
+
+#include "m-os-api.h"
+#include "m-os-api-sdtfn.h"
+#include "m-os-api-math.h"
+#include "m-os-api-timer.h"
+
+#else
+
 #include <stdio.h>
 #include <math.h>
+
+#endif
 
 static REAL time[9][9];
 
@@ -98,6 +114,14 @@ int main (void)
 	REAL resid,residn,eps,t1,tm,tm2;
 	REAL epslon(),second(),kf;
 	static int ipvt[200],n,i,ntimes,info,lda,ldaa,kflops;
+
+#ifdef MURMULATOR
+  	cmd_ctx_t* ctx = get_cmd_ctx();
+  	int argc = ctx->argc;
+  	char **argv = ctx->argv;
+	FILE* stdout = ctx->std_out;
+	FILE* stderr = ctx->std_err;
+#endif
 
 	lda = 201;
 	ldaa = 200;
@@ -299,7 +323,7 @@ int main (void)
 print_time (row)
 int row;
 {
-fprintf(stderr,"%11.2f%11.2f%11.2f%11.0f%11.2f%11.2f\n",   (double)time[0][row],
+printf("%11.2f%11.2f%11.2f%11.0f%11.2f%11.2f\n",   (double)time[0][row],
        (double)time[1][row], (double)time[2][row], (double)time[3][row], 
        (double)time[4][row], (double)time[5][row]);
 }
@@ -930,11 +954,14 @@ function, references to m[i][j] are written m[ldm*i+j].  */
 /*----------------------*/ 
 REAL second()
 {
+REAL t ;
+#ifdef MURMULATOR
+t = (REAL) time_us_32() / 1.0e6 ;
+#else
 #include <sys/time.h>
 #include <sys/resource.h>
 
 struct rusage ru;
-REAL t ;
 
 //void getrusage();
  
@@ -942,5 +969,6 @@ getrusage(RUSAGE_SELF,&ru) ;
  
 t = (REAL) (ru.ru_utime.tv_sec+ru.ru_stime.tv_sec) + 
     ((REAL) (ru.ru_utime.tv_usec+ru.ru_stime.tv_usec))/1.0e6 ;
+#endif
 return t ;
 }
