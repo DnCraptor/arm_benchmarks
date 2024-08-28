@@ -112,6 +112,14 @@ double __aeabi_ddiv(double x, double y) {
     typedef double (*fn)(double, double);
     return ((fn)_sys_table_ptrs[246])(x, y);
 }
+double __aeabi_dadd(double x, double y) {
+    typedef double (*fn)(double, double);
+    return ((fn)_sys_table_ptrs[247])(x, y);
+}
+double __aeabi_i2d(int x) {
+    typedef double (*fn)(int);
+    return ((fn)_sys_table_ptrs[248])(x);
+}
 
 #ifdef __cplusplus
 }

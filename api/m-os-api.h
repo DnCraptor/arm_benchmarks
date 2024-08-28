@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 #if !M_API_VERSION
-#define M_API_VERSION 20
+#define M_API_VERSION 21
 #endif
 
 #define M_OS_API_SYS_TABLE_BASE ((void*)(0x10000000ul + (16 << 20) - (4 << 10)))
@@ -297,6 +297,7 @@ typedef int (*ipc_ptr_t)(const char *);
 inline static int atoi (const char * s) {
     return ((ipc_ptr_t)_sys_table_ptrs[100])(s);
 }
+#define atol(x) atoi(x)
 inline static void overclocking() {
     return ((vv_ptr_t)_sys_table_ptrs[101])();
 }
