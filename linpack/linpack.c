@@ -62,6 +62,10 @@ You must specify one of -DSP or -DDP to compile correctly.
 You must specify one of -DROLL or -DUNROLL to compile correctly.
 
 */
+// TODO:
+#define SP
+#define ROLL
+
 
 #ifdef SP
 #define REAL float
@@ -69,10 +73,6 @@ You must specify one of -DROLL or -DUNROLL to compile correctly.
 #define ONE 1.0
 #define PREC "Single "
 #endif
-
-//
-#define DP
-#define ROLL
 
 #ifdef DP
 #define REAL double
@@ -109,11 +109,15 @@ static REAL time[9][9];
 
 int main (void)
 {
-	static REAL aa[200][200],a[200][201],b[200],x[200];
+	static REAL aa[200][200];
+	static REAL a[200][201];
+	static REAL b[200];
+	static REAL x[200];
 	REAL cray,ops,total,norma,normx;
 	REAL resid,residn,eps,t1,tm,tm2;
 	REAL epslon(),second(),kf;
-	static int ipvt[200],n,i,ntimes,info,lda,ldaa,kflops;
+	static int ipvt[200];
+	static int n,i,ntimes,info,lda,ldaa,kflops;
 
 #ifdef MURMULATOR
   	cmd_ctx_t* ctx = get_cmd_ctx();
