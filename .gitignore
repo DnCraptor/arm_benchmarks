@@ -3,3 +3,4 @@ dhrystone/bin/
 build/
 **/cmake-*/
 bin/
+whetstone/.vscode/
