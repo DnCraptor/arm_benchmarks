@@ -468,6 +468,7 @@ inline static void vTaskDelay( const TickType_t xTicksToDelay ) {
     ((vTaskDelay_ptr_t)_sys_table_ptrs[_vTaskDelayPtrIdx])( xTicksToDelay );
 }
 #define sleep_ms vTaskDelay
+
 inline static void vTaskDelete( TaskHandle_t xTaskToDelete ) {
     typedef void (*vTaskDelete_ptr_t)( TaskHandle_t xTaskToDelete );    
     ((vTaskDelete_ptr_t)_sys_table_ptrs[1])(xTaskToDelete);
@@ -526,4 +527,9 @@ UBaseType_t uxTaskGetSystemState( TaskStatus_t * const pxTaskStatusArray,
                                   const UBaseType_t uxArraySize,
                                   configRUN_TIME_COUNTER_TYPE * const pulTotalRunTime  );
     return ((v_ptr_t)_sys_table_ptrs[243])(pxTaskStatusArray, uxArraySize, pulTotalRunTime);
+}
+
+inline static void* pvTaskGetThreadLocalStoragePointer( TaskHandle_t xTaskToQuery, BaseType_t xIndex ) {
+    typedef void* (*v_ptr_t)( TaskHandle_t, BaseType_t );
+    return ((v_ptr_t)_sys_table_ptrs[_pvTaskGetThreadLocalStoragePointerPtrIdx])(xTaskToQuery, xIndex);
 }

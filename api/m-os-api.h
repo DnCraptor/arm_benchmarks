@@ -1,3 +1,5 @@
+#ifndef M_API_VERSION
+
 #define __force_inline __attribute__((always_inline))
 #define inline __force_inline
 // switch used in MinSizeRel optimisation style will call __gnu_thumb1_case_uni, not defined on this stage
@@ -8,7 +10,7 @@ extern "C" {
 #endif
 
 #if !M_API_VERSION
-#define M_API_VERSION 21
+#define M_API_VERSION 26
 #endif
 
 #define M_OS_API_SYS_TABLE_BASE ((void*)(0x10000000ul + (16 << 20) - (4 << 10)))
@@ -248,7 +250,7 @@ typedef int (*bootb_ptr_t)( void );
 
 typedef struct {
     bootb_ptr_t bootb[5];
-    sect_entry_t* sect_entries;
+    void* /* list_ of sect_entry_t*/ sections;
 } bootb_ctx_t;
 
 typedef struct {
@@ -263,7 +265,8 @@ typedef enum {
     VALID,
     LOAD,
     EXECUTED,
-    INVALIDATED
+    INVALIDATED,
+    SIGTERM
 } cmd_exec_stage_t;
 
 typedef struct cmd_ctx {
@@ -285,8 +288,23 @@ typedef struct cmd_ctx {
 
     struct cmd_ctx* next;
 
-    cmd_exec_stage_t stage;
+    volatile cmd_exec_stage_t stage;
+    void* user_data;
+    bool forse_flash;
 } cmd_ctx_t;
+
+inline static TaskHandle_t xTaskGetCurrentTaskHandle( void ) {
+    typedef TaskHandle_t (*f_ptr_t)(void);
+    return ((f_ptr_t)_sys_table_ptrs[136])();
+}
+
+inline static
+void vTaskSetThreadLocalStoragePointer( TaskHandle_t xTaskToSet,
+                                        BaseType_t xIndex,
+                                        void* pvValue ) {
+    typedef void (*f_ptr_t)(TaskHandle_t, BaseType_t, void*);
+    ((f_ptr_t)_sys_table_ptrs[23])(xTaskToSet, xIndex, pvValue);
+}
 
 inline static cmd_ctx_t* get_cmd_startup_ctx() {
     typedef cmd_ctx_t* (*f_ptr_t)();
@@ -297,7 +315,6 @@ typedef int (*ipc_ptr_t)(const char *);
 inline static int atoi (const char * s) {
     return ((ipc_ptr_t)_sys_table_ptrs[100])(s);
 }
-#define atol(x) atoi(x)
 inline static void overclocking() {
     return ((vv_ptr_t)_sys_table_ptrs[101])();
 }
@@ -362,8 +379,8 @@ inline static void vPortGetHeapStats( HeapStats_t * pxHeapStats ) {
     ((fn_ptr_t)_sys_table_ptrs[110])(pxHeapStats);
 }
 
-inline static uint32_t get_cpu_ram_size() {
-    typedef uint32_t (*fn_ptr_t)();
+inline static uint32_t get_cpu_ram_size(void) {
+    typedef uint32_t (*fn_ptr_t)(void);
     return ((fn_ptr_t)_sys_table_ptrs[111])();
 }
 inline static uint32_t get_cpu_flash_size() {
@@ -460,6 +477,11 @@ inline static bool exists(cmd_ctx_t* ctx) {
 inline static char* concat(const char* s1, const char* s2) {
     typedef char* (*fn_ptr_t)(const char*, const char*);
     return ((fn_ptr_t)_sys_table_ptrs[129])(s1, s2);
+}
+
+inline static void flash_block(uint8_t* buffer, size_t flash_target_offset) {
+    typedef void (*fn_ptr_t)(uint8_t*, size_t);
+    ((fn_ptr_t)_sys_table_ptrs[131])(buffer, flash_target_offset);
 }
 
 inline static size_t get_heap_total() {
@@ -831,6 +853,10 @@ inline static double pow (double x, double y) {
     typedef double (*fn_ptr_t)(double, double);
     return ((fn_ptr_t)_sys_table_ptrs[202])(x, y);
 }
+inline static float powf(float x, float y) {
+    typedef float (*fn)(float, float);
+    return ((fn)_sys_table_ptrs[257])(x, y);
+}
 
 inline static double sqrt (double x) {
     typedef double (*fn_ptr_t)(double);
@@ -884,9 +910,14 @@ inline static void fputc(char c, FILE* f) {
 }
 
 inline static int fgetc(FILE* f) {
-    char b[1];
-    UINT br;
-    if (f_read(f, b, 1, &br) == FR_OK && br == 1) return b[0];
+    if (f_eof(f)) return -1;
+    else {
+        char b;
+        UINT br;
+        if (f_read(f, &b, 1, &br) == FR_OK && br == 1) {
+            return b;
+        }
+    }
     return -1;
 }
 
@@ -965,6 +996,36 @@ inline static int kill(uint32_t task_n) {
     return ((fn_ptr_t)_sys_table_ptrs[244])(task_n);
 }
 
+// TODO: separate header
+static unsigned ___srand___;
+inline static void srand(unsigned x) {
+    ___srand___ = x;
+}
+static int rand(void) {
+	___srand___ = (31421 * ___srand___ + 6927) & 0xffff;
+	return ___srand___ / 0x10000 + 1;
+}
+
+inline static int memcmp( const void *buffer1, const void *buffer2, size_t count ) {
+    typedef int (*fn_ptr_t)(const void *buffer1, const void *buffer2, size_t count);
+    return ((fn_ptr_t)_sys_table_ptrs[253])(buffer1, buffer2, count);
+}
+
+inline static void reboot_me( void ) {
+    typedef void (*fn_ptr_t)(void);
+    ((fn_ptr_t)_sys_table_ptrs[254])();
+}
+
+// API v23
+inline static size_t free_app_flash(void) {
+    typedef size_t (*fn_ptr_t)(void);
+    return ((fn_ptr_t)_sys_table_ptrs[255])();
+}
+
+#define abs(x) (x > 0 ? x : -x)
+
+#ifndef UF2_MODE
+
 #ifndef marked_to_exit
 volatile bool marked_to_exit;
 
@@ -972,11 +1033,13 @@ int __required_m_api_verion(void) {
     return M_API_VERSION;
 }
 
-// only SIGKILL is supported for now
+// only SIGTERM is supported for now
 int signal(void) {
 	marked_to_exit = true;
     return 0;
 }
+#endif
+
 #endif
 
 #ifdef __cplusplus
@@ -1004,5 +1067,7 @@ inline static bool cmd_enter_helper(cmd_ctx_t* ctx, string_t* s_cmd) {
     typedef bool (*fn_ptr_t)(cmd_ctx_t* ctx, string_t* s_cmd);
     return ((fn_ptr_t)_sys_table_ptrs[235])(ctx, s_cmd);
 }
+
+#endif
 
 #endif

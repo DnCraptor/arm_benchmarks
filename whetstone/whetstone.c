@@ -171,8 +171,8 @@ int main(
 	while (II < argc) {
 		if (strncmp(argv[II], "-c", 2) == 0 || argv[II][0] == 'c') {
 			continuous = 1;
-		} else if (atol(argv[II]) > 0) {
-			loopstart = atol(argv[II]);
+		} else if (atoi(argv[II]) > 0) {
+			loopstart = atoi(argv[II]);
 		} else {
 			fprintf(stderr, USAGE);
 			return(1);

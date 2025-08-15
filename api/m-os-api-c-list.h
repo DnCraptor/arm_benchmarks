@@ -1,6 +1,10 @@
 #ifndef M_API_C_LIST
 #define M_API_C_LIST
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct node {
     struct node* prev;
     struct node* next;
@@ -19,10 +23,13 @@ typedef struct list {
     size_t size;
 } list_t;
 
+void* pvPortMalloc(size_t sz); // 32
+void vPortFree(void*); // 33
+
 static list_t* new_list_v(alloc_fn_ptr_t allocator, dealloc_fn_ptr_t deallocator, size_fn_ptr_t size_fn) {
     list_t* res = (list_t*)pvPortMalloc(sizeof(list_t));
-    res->allocator = allocator ? allocator : pvPortMalloc;
-    res->deallocator = deallocator ? deallocator : vPortFree;
+    res->allocator = allocator ? allocator : (alloc_fn_ptr_t)pvPortMalloc;
+    res->deallocator = deallocator ? deallocator : (dealloc_fn_ptr_t)vPortFree;
     res->size_fn = size_fn;
     res->first = NULL;
     res->last = NULL;
@@ -58,7 +65,7 @@ static size_t list_data_bytes(list_t* lst) {
     return res;
 }
 
-static void delete_list(list_t* lst) {
+static void list_cleanup(list_t* lst) {
     node_t* i = lst->last;
     while(i) {
         node_t* prev = i->prev;
@@ -68,6 +75,13 @@ static void delete_list(list_t* lst) {
         vPortFree(i);
         i = prev;
     }
+    lst->first = NULL;
+    lst->last = NULL;
+    lst->size = 0;
+}
+
+static void delete_list(list_t* lst) {
+    list_cleanup(lst);
     vPortFree(lst);
 }
 
@@ -135,5 +149,9 @@ static void list_erase_node(list_t* lst, node_t* n) {
     vPortFree(n);
     --lst->size;
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

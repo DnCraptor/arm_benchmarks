@@ -41,6 +41,25 @@ static string_t* new_string_cc(const char* s) {
     return res;
 }
 
+static string_t* new_string_cl(const char* s, size_t sz) {
+    string_t* res = (string_t*)pvPortMalloc(sizeof(string_t));
+    res->size = sz;
+    res->alloc = sz + 1;
+    res->p = (char*)pvPortMalloc(res->alloc);
+    strncpy(res->p, s, res->alloc);
+    res->p[sz] = 0;
+    return res;
+}
+
+static string_t* new_string_cs(const string_t* s) {
+    string_t* res = (string_t*)pvPortMalloc(sizeof(string_t));
+    res->size = s->size;
+    res->alloc = s->size + 1;
+    res->p = (char*)pvPortMalloc(res->alloc);
+    strncpy(res->p, s->p, res->alloc);
+    return res;
+}
+
 static void string_reseve(string_t* s, size_t alloc) {
     if (s->alloc >= alloc) return; // already more or eq. than requested
     char* n_p = (char*)pvPortMalloc(alloc);
@@ -99,6 +118,9 @@ static void string_resize(string_t* s, size_t sz) {
     s->size = sz;
 }
 
+/// TODO: organize it
+void* memset(void* p, int v, size_t sz);
+
 static void string_insert_c(string_t* s, char c, size_t idx) {
     string_reseve(s, idx + 1);
     if (idx >= s->size) {
@@ -146,11 +168,11 @@ static void string_replace_ss(string_t* s, const string_t* ss) {
 }
 
 inline static const char* c_str(const string_t* s) {
-    return s->p;
+    return s ? s->p : 0;
 }
 
 inline static size_t c_strlen(const string_t* s) {
-    return s->size;
+    return s ? s->size : 0;
 }
 
 #endif
